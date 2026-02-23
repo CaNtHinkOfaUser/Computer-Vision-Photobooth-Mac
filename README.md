@@ -1,4 +1,50 @@
 # Computer-Vision-Photobooth-Mac
+Welcome to our Virtual Photobooth! Because this project utilizes heavy machine learning libraries (mediapipe, rembg, opencv-python e.t.c.) that are highly sensitive to specific Python versions and environment conflicts, this project uses uv for dependency management.
+
+[uv](https://docs.astral.sh/uv/) is an ultra-fast Python package manager that will automatically download the correct, isolated version of Python (3.10) required for Google's MediaPipe, guaranteeing a crash-free setup regardless of your computer's default Python version.
+
+## Set up
+### Step 1: Install uv
+
+If you do not already have uv installed on your system, open your terminal and run the following command:
+
+- Mac/Linux: ```curl -LsSf https://astral.sh/uv/install.sh | sh```
+
+- Windows: ```powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"```
+
+
+### Step 2: Create the Virtual Environment
+
+Navigate to this project folder in your terminal. Run the following command to create a virtual environment explicitly using Python 3.10 (This specific version is required for MediaPipe 0.10.14 compatibility):
+
+```
+uv venv --python 3.10 .venv
+```
+
+### Step 3: Activate the Environment
+
+Before installing packages, you must activate the environment:
+
+- Mac/Linux: ```source .venv/bin/activate```
+
+- Windows: ```.venv\Scripts\activate```
+    (You should see (.venv) appear at the start of your terminal prompt).
+
+### Step 4: Install Dependencies
+With the environment activated, install the required libraries. ```uv``` will resolve these in seconds:
+```
+uv pip install -r requirements.txt
+```
+
+## Controls & Features
+
+- 1-5: Toggle through different AR Props (Hats, Glasses, Masks)
+- 6-9: Toggle UI Elements and Effects (Frames, Confetti, Halo Streaks)
+- 0: Cycle through Virtual Backgrounds (Requires Virtual BG to be active)
+- SPACE: Capture Photo (Triggers high-quality rembg background removal)
+- Q: Quit Application
+
+## Write up
 "After our 4 years in SST, we have finally reached the SST Graduation Tea. With all that we have been through, we have made many lasting friends and memories. For this Graduation Tea, we will have a virtual photobooth with many props and filters that pay homage to our unique SST identity and culture while reflecting on the many events in the 4 years of SST. These props can be worn on the head, face, and body, with a large selection for each category. Our photobooth will also have many effects, filters and props to complement and accommodate users' personal style. We created this photobooth to help SST Students take a memorable photo that they can carry throughout their journey of life.
 
 1. The graduation cap signifies the students' end at SST and their completion of secondary school, a 4-year journey of suffering, enjoyment and achievement.
