@@ -36,6 +36,12 @@ With the environment activated, install the required libraries. ```uv``` will re
 uv pip install -r requirements.txt
 ```
 
+### Step 5: Run
+With the dependencies installed, you can now run the script!
+```
+uv run main.py
+```
+
 ## Controls & Features
 
 - 1-5: Toggle through different AR Props (Hats, Glasses, Masks)
