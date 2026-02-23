@@ -1,15 +1,14 @@
-Python 3.12.1 (v3.12.1:2305ca5144, Dec  7 2023, 17:23:38) [Clang 13.0.0 (clang-1300.0.29.30)] on darwin
-Type "help", "copyright", "credits" or "license()" for more information.
 import os
-import subprocess  # for playing sound effect
-import time  # for the countdown timer
-from datetime import datetime  # for the name and tagging of photos
+import subprocess  # For playing sound effect
+import time  # For the countdown timer
+from datetime import datetime  # For the name and tagging of photos
 
 import cv2
 import mediapipe as mp
 import numpy as np
 
 import sys
+import time
 import threading
 import itertools
 
@@ -44,10 +43,10 @@ class VirtualPhotobooth:
     # Main photobooth class handling face detection and prop overlay
 
     def __init__(self):
-        
         # init mediapipe, Rembg and assets
-        # loads all dynamic assets (backgrounds from the folder, transparent PNG props) and sets up default toggle states
-        
+        # Loads all dynamic assets (backgrounds from the folder, transparent PNG props)
+        # and sets up default toggle states.
+
         # face mesh setup
         self.mp_face_mesh = mp.solutions.face_mesh
         self.face_mesh = self.mp_face_mesh.FaceMesh(
@@ -97,13 +96,8 @@ class VirtualPhotobooth:
 
         if not self.bg_images:
             print(
-                f"  -> No images found in {self.bg_folder}. Trying to load default..."
+                f"  -> WARNING: No images found in {self.bg_folder}. No backgrounds available at all!"
             )
-            fallback = cv2.imread("169950_1.jpg")
-            if fallback is not None:
-                self.bg_images.append(fallback)
-            else:
-                print("  -> WARNING: No backgrounds available at all!")
 
         self.output_dir = "graduation_photos"
         if not os.path.exists(self.output_dir):
@@ -163,7 +157,8 @@ class VirtualPhotobooth:
         self.white = (255, 255, 255)
 
     def play_shutter_sound(self):
-        # triggers the camera shutter sound effect (afplay) natively on macOS without freezing the camera feed, non-block essentially
+        # Triggers the camera shutter sound effect (afplay) natively on macOS without freezing the camera feed.
+        # So non-block essentially
         sound_file = "assets/shutter.mp3"
         if not os.path.exists(sound_file):
             print("Audio file not found")
@@ -191,7 +186,7 @@ class VirtualPhotobooth:
         return (foreground + background).astype(np.uint8)
 
     def apply_high_quality_background(self, frame):
-        # use the rembg (u2net) model for final saved photo
+        # Use the rembg (u2net) model for final saved photo
         if not self.bg_images or self.rembg_session is None:
             return self.apply_virtual_background(frame)
 
@@ -289,21 +284,21 @@ class VirtualPhotobooth:
         radius = min(radius, abs(x2 - x1) // 2, abs(y2 - y1) // 2)
 
         if filled:
-            # draw central intersecting rectangles
+            # Draw central intersecting rectangles
             cv2.rectangle(img, (x1 + radius, y1), (x2 - radius, y2), color, -1)
             cv2.rectangle(img, (x1, y1 + radius), (x2, y2 - radius), color, -1)
-            # fill the four corners with circles
+            # Fill the four corners with circles
             cv2.circle(img, (x1 + radius, y1 + radius), radius, color, -1)
             cv2.circle(img, (x2 - radius, y1 + radius), radius, color, -1)
             cv2.circle(img, (x1 + radius, y2 - radius), radius, color, -1)
             cv2.circle(img, (x2 - radius, y2 - radius), radius, color, -1)
         else:
-            # draw four straight lines
+            # Draw four straight lines
             cv2.line(img, (x1 + radius, y1), (x2 - radius, y1), color, thickness)
             cv2.line(img, (x1 + radius, y2), (x2 - radius, y2), color, thickness)
             cv2.line(img, (x1, y1 + radius), (x1, y2 - radius), color, thickness)
             cv2.line(img, (x2, y1 + radius), (x2, y2 - radius), color, thickness)
-            # draw four corner arcs
+            # Draw four corner arcs
             cv2.ellipse(
                 img,
                 (x1 + radius, y1 + radius),
@@ -346,7 +341,8 @@ class VirtualPhotobooth:
             )
 
     def draw_squad_connections(self, image, face_centers):
-        # calculates the distance between multiple people in the frame before drawing a blue/gold line between them, adding a glowing star if they stand close together
+        # Calculates the distance between multiple people in the frame.
+        # Draws a blue/gold line between them, adding a glowing star if they stand close together.
         num_faces = len(face_centers)
         if num_faces < 2:
             return
@@ -366,7 +362,7 @@ class VirtualPhotobooth:
             cv2.line(image, pt1, pt2, color, thickness)
 
     def draw_banner(self, image):
-        # Renders the semi-transparent "SST Graduation Tea 2026" header at the top of the screen (and the SST logo)
+        # Renders the semi-transparent "SST Graduation Tea 2026" header at the top of the screen. (and the SST logo)
         height, width = image.shape[:2]
         banner_height = 80
         overlay = image.copy()
@@ -380,7 +376,7 @@ class VirtualPhotobooth:
             logo_x = 30 + (logo_w // 2)
             logo_y = banner_height // 2
 
-            # calculate the boundaries of the badge with padding
+            # Calculate the boundaries of the badge with padding
             pad_x = 12
             pad_y = 3
             top_left = (logo_x - (logo_w // 2) - pad_x, logo_y - (logo_h // 2) - pad_y)
@@ -480,7 +476,8 @@ class VirtualPhotobooth:
         )
 
     def draw_fancy_countdown(self, image, remaining_seconds):
-        # draws the darkened circle overlay and the large countdown numbers right before the picture is taken offloads counting functionality to the processing func
+        # Draws the darkened circle overlay and the large countdown numbers right before the picture is taken.
+        # offloads counting functionality to the processing func
         height, width = image.shape[:2]
         center_x, center_y = width // 2, height // 2
 
@@ -519,7 +516,7 @@ class VirtualPhotobooth:
                 frame = self.apply_high_quality_background(frame)
             else:
                 frame = self.apply_virtual_background(frame)
-        # Swaps the background (Live or HD depending on is_final_capture)
+        # Swaps the background (Live or HD depending on is_final_capture).
 
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_mesh.process(rgb_frame)
@@ -532,7 +529,7 @@ class VirtualPhotobooth:
             self.draw_decorative_frame(frame)
 
         face_centers = []
-        # detects the face and runs the algorithm
+        # Detects the face and runs the algorithm.
         if results.multi_face_landmarks:
             for face_landmarks in results.multi_face_landmarks:
                 ih, iw, _ = frame.shape
@@ -543,7 +540,8 @@ class VirtualPhotobooth:
                         int(face_landmarks.landmark[idx].y * ih),
                     )
 
-                # Grab specific 3D anchors for virtual props like the hats to the forehead, glasses to the nose bridge, and beard/mask to the lower lip/nose
+                # Grab specific 3D anchors for virtual props
+                # Anchors the hats to the forehead, glasses to the nose bridge, and beard/mask to the lower lip/nose.
                 left_eye = get_pt(159)
                 right_eye = get_pt(386)
                 forehead = get_pt(10)
@@ -563,9 +561,10 @@ class VirtualPhotobooth:
                 # calculate tilt
                 dx = right_eye[0] - left_eye[0]
                 dy = right_eye[1] - left_eye[1]
-                angle = np.degrees(np.arctan2(dy, dx)) #calc!
+                angle = np.degrees(np.arctan2(dy, dx))
 
-                # Pitch Ratio (Up/Down Detection) - Compares the height of the forehead to the height of the jaw
+                # Pitch Ratio (Up/Down Detection)
+                # Compares the height of the forehead to the height of the jaw
                 top_dist = max(1, nose_bridge[1] - forehead[1])
                 bottom_dist = max(1, chin[1] - nose_bridge[1])
                 pitch_ratio = top_dist / bottom_dist
@@ -575,14 +574,14 @@ class VirtualPhotobooth:
                 # 1. Hats
                 hat_type = self.active_props["hat"]
                 if hat_type and hat_type in self.assets:
-                    # dynamically shrink the gap when looking up, expand when looking down!
+                    # Dynamically shrink the gap when looking up, expand when looking down!
                     dynamic_offset = int(face_width * 0.7 * pitch_ratio)
 
                     hat_x = forehead[0] + int(
                         dynamic_offset * np.sin(np.radians(angle))
                     )
                     hat_y = forehead[1] - int(
-                        dynamic_offset * np.cos(np.radians(angle)) #so cool right
+                        dynamic_offset * np.cos(np.radians(angle))
                     )
 
                     frame = self._overlay_image_alpha(
@@ -659,7 +658,7 @@ class VirtualPhotobooth:
             # frame = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR) <- if I wanted gray
 
         num_people = len(face_centers)
-        # layers all the active UI elements and AR props on top of the user
+        # layers all the active UI elements and AR props on top of the user.
         if self.active_props["banner"]:
             if num_people == 1:
                 title = "Future Innovator"
@@ -698,7 +697,7 @@ class VirtualPhotobooth:
         if self.active_props["squad_sparks"] and num_people > 1:
             self.draw_squad_connections(frame, face_centers)
 
-        # computes the "Halo Streaks" afterimage effect.
+        # Computes the "Halo Streaks" afterimage effect.
         if self.active_props.get("halo_streaks"):
             if (
                 self.accumulated_frame is None
@@ -715,7 +714,7 @@ class VirtualPhotobooth:
         return frame
 
     def cycle_prop(self, category, options):
-        # A helper to continuously loop through arrays of props (e.g: Cap -> Propeller -> None) when a key is pressed.
+        # A helper to continuously loop through arrays of props (e.g., Cap -> Propeller -> None) when a key is pressed.
         current = self.active_props[category]
         try:
             next_idx = (options.index(current) + 1) % len(options)
@@ -724,11 +723,11 @@ class VirtualPhotobooth:
         self.active_props[category] = options[next_idx]
 
     def draw_controls(self, frame):
-        # renders the text menu on the left side of the screen explaining the keyboard shortcuts.
+        # Renders the text menu on the left side of the screen explaining the keyboard shortcuts.
         if self.is_counting_down:
             return
 
-        instructions = [ #menu
+        instructions = [
             "CONTROLS:",
             "1 - Cycle Hats",
             "2 - Cycle Glasses",
@@ -744,8 +743,8 @@ class VirtualPhotobooth:
             "SPACE - Capture Photo",
             "Q - Quit",
         ]
-        
-        # semi-Transparent Rounded HUD Panel
+
+        # Semi-Transparent Rounded HUD Panel
         overlay = frame.copy()
         panel_x = 5
         panel_y = 100
@@ -755,12 +754,12 @@ class VirtualPhotobooth:
         top_left = (panel_x, panel_y)
         bottom_right = (panel_x + panel_w, panel_y + panel_h)
 
-        # draw a black rounded rectangle on the overlay with 15px corner radius
+        # Draw a black rounded rectangle on the overlay with 15px corner radius
         self.draw_rounded_rect(
             overlay, top_left, bottom_right, (0, 0, 0), radius=15, filled=True
         )
 
-        # blend the overlay with the original frame with 50% opacity
+        # Blend the overlay with the original frame with 50% opacity
         cv2.addWeighted(overlay, 0.5, frame, 0.5, 0, frame)
 
         y_offset = 130
@@ -791,9 +790,9 @@ class VirtualPhotobooth:
             # its a workaround due to OpenCV not having a built-in "text outline" feature
 
     def print_color_ascii(self, frame, width=80):
-        # shrinks the final photo, analyzes pixel brightness and RGB values, and outputs a 24-bit color ASCII art version directly into the terminal window. 
+        # Shrinks the final photo, analyzes pixel brightness and RGB values,
+        # and outputs a 24-bit color ASCII art version directly into the terminal window.
         # gimicky but fun; ascii is fun yayy
-        
         print("\n" + "=" * 60)
         print("INCOMING ASCII TRANSMISSION...")
         print("=" * 60 + "\n")
@@ -815,7 +814,7 @@ class VirtualPhotobooth:
         print("\n" + "=" * 60 + "\n")
 
     def save_photo(self, frame):
-        # generates a timestamp, saves the final .jpg to the graduation_photos folder, and triggers the ASCII printout.
+        # Generates a timestamp, saves the final .jpg to the graduation_photos folder, and triggers the ASCII printout.
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{self.output_dir}/SST_GradTea_{timestamp}.jpg"
         cv2.imwrite(filename, frame)
@@ -826,7 +825,7 @@ class VirtualPhotobooth:
     def run(self):
         # The main application loop.
         # It opens the webcam, reads the frames, listens for keyboard presses (1-9, Space, Q),
-        # handles the countdown timer state, and flashes the screen white when a photo is taken
+        # handles the countdown timer state, and flashes the screen white when a photo is taken.
 
         cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
 
@@ -905,40 +904,41 @@ class VirtualPhotobooth:
                         "squad_sparks"
                     ]
                 elif key == ord("9"):
-...                     self.active_props["halo_streaks"] = not self.active_props[
-...                         "halo_streaks"
-...                     ]
-...                 elif key in [ord("w"), ord("W")]:
-...                     self.active_props["wireframe"] = not self.active_props["wireframe"]
-...                 elif key == ord(" "):
-...                     if not self.is_counting_down:
-...                         print("\nSay Cheese! Counting down...")
-...                         self.is_counting_down = True
-...                         self.countdown_start_time = time.time()
-... 
-...                 frame_count += 1
-... 
-...         finally:
-...             cap.release()
-...             cv2.destroyAllWindows()
-...             self.face_mesh.close()
-...             self.segmentation.close()
-...             print("\nPhotobooth closed. Thank you for celebrating with us!")
-... 
-... 
-... def main():
-...     loader = Spinner("Warming up the camera and models...") # start loading animation
-...     loader.start() 
-... 
-...     try:
-...         photobooth = VirtualPhotobooth() # initialize photobooth class 
-...         loader.stop()
-...         print("📸 Photobooth is ready! Press 'Q' to quit.")
-...         photobooth.run()  
-... 
-...     except Exception as e:
-...         # stop the spinner to see error if something crashes
-...         loader.stop()
-...         print(f"\n❌ Error starting photobooth: {e}")
-... 
-... if __name__ == "__main__":
+                    self.active_props["halo_streaks"] = not self.active_props[
+                        "halo_streaks"
+                    ]
+                elif key in [ord("w"), ord("W")]:
+                    self.active_props["wireframe"] = not self.active_props["wireframe"]
+                elif key == ord(" "):
+                    if not self.is_counting_down:
+                        print("\nSay Cheese! Counting down...")
+                        self.is_counting_down = True
+                        self.countdown_start_time = time.time()
+
+                frame_count += 1
+
+        finally:
+            cap.release()
+            cv2.destroyAllWindows()
+            self.face_mesh.close()
+            self.segmentation.close()
+            print("\nPhotobooth closed. Thank you for celebrating with us!")
+
+
+def main():
+    loader = Spinner("Warming up the camera and models...") # start loading animation
+    loader.start() 
+
+    try:
+        photobooth = VirtualPhotobooth() # initialize photobooth class 
+        loader.stop()
+        print("📸 Photobooth is ready! Press 'Q' to quit.")
+        photobooth.run()  
+
+    except Exception as e:
+        # stop the spinner to see error if something crashes
+        loader.stop()
+        print(f"\n❌ Error starting photobooth: {e}")
+
+if __name__ == "__main__":
+    main()
